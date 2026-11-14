@@ -1,5 +1,6 @@
 package com.urlshortner.shortly.Url.service;
 
+import com.urlshortner.shortly.Url.dtos.ShortUrlCacheDto;
 import com.urlshortner.shortly.Url.entities.ShortUrl;
 import com.urlshortner.shortly.Url.events.ClickCaptureEvent;
 import com.urlshortner.shortly.Url.producer.ClickEventProducer;
@@ -20,19 +21,18 @@ import java.util.UUID;
 public class AnalyticsService {
     private final ClickEventProducer clickEventProducer;
 
-    public void sendClickEvent(ShortUrl url, HttpServletRequest request) {
+    public void sendClickEvent(ShortUrlCacheDto url, HttpServletRequest request) {
         try {
 
             String userAgent = request.getHeader("User-Agent");
             String referrer = extractReferrer(request.getHeader("Referer"));
             String clientIp = request.getRemoteAddr();
-//            String visitorId = visitorIdentifierService.generateVisitorId(clientIp, userAgent);
             ClickCaptureEvent event = ClickCaptureEvent
                     .builder()
                     .eventId(UUID.randomUUID())
-                    .shortUrlId(url.getId())
-//                    .userId(url.getUser() != null ? url.getUser().getId() : null)
-                    .shortCode(url.getShortCode())
+                    .shortUrlId(url.id())
+                    .userId(url.userId())
+                    .shortCode(url.shortCode())
                     .clickedAt(Instant.now())
                     .userAgent(userAgent)
                     .referrer(referrer)
@@ -42,7 +42,7 @@ public class AnalyticsService {
         } catch (Exception exception) {
             log.error(
                     "Unable to track click for shortcode: {}",
-                    url.getShortCode(),
+                    url.shortCode(),
                     exception
             );
         }

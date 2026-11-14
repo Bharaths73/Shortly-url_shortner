@@ -17,7 +17,7 @@ public class CreatedEventProducer {
     @Value("${kafka.topic.short-url-created}")
     private String SHORT_URL_CREATED_TOPIC;
 
-    public void sendClickEvent(ShortCodeCreatedEvent shortCodeCreatedEvent) {
+    public void sendCreatedEvent(ShortCodeCreatedEvent shortCodeCreatedEvent) {
         kafkaTemplate.send(SHORT_URL_CREATED_TOPIC, shortCodeCreatedEvent.getShortUrlId().toString(), shortCodeCreatedEvent)
                 .whenComplete((result, ex) -> {
                     if (ex != null) {

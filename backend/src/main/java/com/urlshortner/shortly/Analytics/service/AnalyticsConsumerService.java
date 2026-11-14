@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.basjes.parse.useragent.UserAgent;
 import nl.basjes.parse.useragent.UserAgentAnalyzer;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,7 @@ public class AnalyticsConsumerService {
     private static final int MAX_USER_AGENT_LENGTH = 2048;
 
     @Transactional
+    @CacheEvict(cacheNames = "analyticsDashboardCache", key = "#event.userId")
     public void processClickEvent(ClickCaptureEvent event) {
         if (clickEventRepository.existsByEventId(event.getEventId())) {
             log.info("Duplicate click event ignored: {}", event.getEventId());

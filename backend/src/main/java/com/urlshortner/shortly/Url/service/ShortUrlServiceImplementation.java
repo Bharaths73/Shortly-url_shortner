@@ -2,6 +2,7 @@ package com.urlshortner.shortly.Url.service;
 
 import com.urlshortner.shortly.Auth.entities.User;
 import com.urlshortner.shortly.Auth.repository.UserRepo;
+import com.urlshortner.shortly.Url.dtos.ShortUrlCacheDto;
 import com.urlshortner.shortly.Url.dtos.UrlRequestDto;
 import com.urlshortner.shortly.Url.dtos.UrlResponseDto;
 import com.urlshortner.shortly.Url.entities.ShortUrl;
@@ -20,6 +21,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -39,11 +42,13 @@ public class ShortUrlServiceImplementation implements ShortUrlService {
     private final AnalyticsService analyticsService;
     private final CreatedEventProducer CreatedEventProducer;
     private final UserRepo userRepo;
+    private final ShortUrlCacheService cacheService;
 
     @Value("${short-url.max-retries}")
     private Integer MAX_RETRIES;
 
     @Override
+    @CacheEvict(cacheNames = "analyticsDashboardCache", key = "#principal.id")
     public UrlResponseDto createShortUrl(UrlRequestDto requestDto, User principal) {
         String url = requestDto.getOriginalUrl().trim();
         Optional<ShortUrl> originalUrl = repo.findByOriginalUrl(url);
@@ -72,7 +77,7 @@ public class ShortUrlServiceImplementation implements ShortUrlService {
                        .email(principal.getEmail())
                        .userName(principal.getFirstName() + " " + principal.getLastName())
                        .build();
-               CreatedEventProducer.sendClickEvent(event);
+               CreatedEventProducer.sendCreatedEvent(event);
                return urlResponseDto;
            } catch (DataIntegrityViolationException e) {
                if(!classifier.isShortCodeConflict(e)){
@@ -88,15 +93,13 @@ public class ShortUrlServiceImplementation implements ShortUrlService {
 
     @Override
     public String getOriginalUrl(String shortCode, HttpServletRequest request) {
-        Optional<ShortUrl> shortUrl = repo.findByShortCode(shortCode);
-        if(shortUrl.isEmpty()){
-            throw new ResourceNotFoundException("Short code not found");
-        }
-        analyticsService.sendClickEvent(shortUrl.get(), request);
-        return shortUrl.get().getOriginalUrl();
+        ShortUrlCacheDto shortUrl = cacheService.getCachedShortUrl(shortCode);
+        analyticsService.sendClickEvent(shortUrl, request);
+        return shortUrl.originalUrl();
     }
 
     @Override
+    @Cacheable(cacheNames = "shortUrlDetailsCache", key = "#shortcode")
     public UrlResponseDto getShortCodeDetails(String shortcode) {
         Optional<ShortUrl> shortUrl = repo.findByShortCode(shortcode);
         if(shortUrl.isEmpty()){

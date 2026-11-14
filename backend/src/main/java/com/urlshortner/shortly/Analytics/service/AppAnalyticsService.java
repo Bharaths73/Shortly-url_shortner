@@ -5,6 +5,7 @@ import com.urlshortner.shortly.Analytics.dtos.DashboardStats;
 import com.urlshortner.shortly.Analytics.repository.ClickEventRepository;
 import com.urlshortner.shortly.Url.repository.UrlRepo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -18,6 +19,7 @@ public class AppAnalyticsService {
     private final UrlRepo urlRepo;
     private final ClickEventRepository clickEventRepository;
 
+    @Cacheable(cacheNames = "analyticsDashboardCache", key = "#userId")
     public DashboardResponse getAnalyticsDashboard(UUID userId) {
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Kolkata"));
         LocalDate firstDayOfMonth = today.withDayOfMonth(1);

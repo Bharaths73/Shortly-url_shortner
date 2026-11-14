@@ -13,6 +13,7 @@ import java.util.UUID;
 public class ClickCaptureEvent {
     UUID eventId;
     UUID shortUrlId;
+    UUID userId;
     String shortCode;
     Instant clickedAt;
     String userAgent;
