@@ -36,3 +36,7 @@ build/
 .env
 .env.*
 !.env.example
+
+# SSL certificates
+*.pem
+src/main/resources/certs/ca.pem

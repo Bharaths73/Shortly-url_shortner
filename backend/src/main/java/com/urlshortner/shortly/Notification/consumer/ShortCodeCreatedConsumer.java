@@ -16,7 +16,8 @@ public class ShortCodeCreatedConsumer {
 
     @KafkaListener(
             topics = "${kafka.topic.short-url-created}",
-            groupId = "url-notification-group"
+            groupId = "url-notification-group",
+            containerFactory = "kafkaListenerContainerFactory"
     )
     public void consume(ShortCodeCreatedEvent event) {
         log.info("Received URL creation event: {}", event.getEventId());

@@ -32,7 +32,7 @@ public class NotificationService {
                         <p><strong>Short URL:</strong></p>
                         <a href="%s">%s</a>
                         <p><strong>Original URL:</strong></p>
-                        <p>%s</p>
+                        <a href="%s">%s</a>
                     </div>
 
                     <p>Thank you for using Shortly!</p>
@@ -44,6 +44,7 @@ public class NotificationService {
                 escapeHtml(event.getUserName()!=null ? event.getUserName() : "User"),
                 escapeHtml(SHORT_URL_BASE + event.getShortCode()),
                 escapeHtml(SHORT_URL_BASE + event.getShortCode()),
+                escapeHtml(event.getOriginalUrl()),
                 escapeHtml(event.getOriginalUrl())
         );
 

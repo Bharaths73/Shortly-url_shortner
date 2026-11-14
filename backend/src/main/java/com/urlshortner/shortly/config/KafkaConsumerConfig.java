@@ -1,4 +1,4 @@
-package com.urlshortner.shortly.Analytics.config;
+package com.urlshortner.shortly.config;
 
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,8 +24,16 @@ public class KafkaConsumerConfig {
     @Bean
     public NewTopic ShortCodeClickedDltTopic() {
         return TopicBuilder.name(SHORT_CODE_CLICKED_DLT)
-                .partitions(3)
-                .replicas(3)
+                .partitions(2)
+                .replicas(2)
+                .build();
+    }
+
+    @Bean
+    public NewTopic ShortCodeCreatedDltTopic() {
+        return TopicBuilder.name(SHORT_CODE_CREATED_DLT)
+                .partitions(2)
+                .replicas(2)
                 .build();
     }
 

@@ -58,19 +58,6 @@ public class UrlController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{shortcode}")//for redirect
-    public ResponseEntity<Void> redirectUrl(@PathVariable String shortcode, HttpServletRequest request){
-        if (!shortcode.matches("[a-zA-Z0-9]{6}")) {
-            throw new InvalidShortCodeException("Invalid short code");
-        }
-        String originalUrl = service.getOriginalUrl(shortcode, request);
-        String normalizedUrl = originalUrl.replace("{", "%7B").replace("}", "%7D");
-        HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(URI.create(normalizedUrl));
-        headers.setCacheControl(CacheControl.noStore());
-        return ResponseEntity.status(HttpStatus.FOUND).headers(headers).build();
-    }
-
     @GetMapping("/user/{userId}")//get all urls for specific user and add paging
     public ResponseEntity<ApiResponseModel<List<UrlResponseDto>>> getUserUrls(@PathVariable UUID userId){
         List<UrlResponseDto> urlResponseDtos = service.getUserShortUrls(userId);

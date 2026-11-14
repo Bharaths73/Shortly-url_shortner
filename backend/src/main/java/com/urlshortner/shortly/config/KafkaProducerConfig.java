@@ -1,4 +1,4 @@
-package com.urlshortner.shortly.Url.config;
+package com.urlshortner.shortly.config;
 
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.config.TopicConfig;
@@ -20,9 +20,9 @@ public class KafkaProducerConfig {
     public NewTopic createTopicShortUrlClicked() {
         return TopicBuilder
                 .name(SHORT_URL_CLICKED_TOPIC)
-                .partitions(6)
-                .replicas(3)
-                .config(TopicConfig.RETENTION_MS_CONFIG,"604800000")
+                .partitions(2)
+                .replicas(2)
+                .config(TopicConfig.RETENTION_MS_CONFIG, "259200000")
                 .config(TopicConfig.CLEANUP_POLICY_CONFIG,"delete")
                 .config(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG,"2")
                 .config(TopicConfig.SEGMENT_BYTES_CONFIG,"1073741824")
@@ -33,9 +33,9 @@ public class KafkaProducerConfig {
     public NewTopic createTopicShortUrlCreated() {
         return TopicBuilder
                 .name(SHORT_URL_CREATED_TOPIC)
-                .partitions(6)
-                .replicas(3)
-                .config(TopicConfig.RETENTION_MS_CONFIG,"604800000")//1week
+                .partitions(2)
+                .replicas(2)
+                .config(TopicConfig.RETENTION_MS_CONFIG, "259200000")//3days
                 .config(TopicConfig.CLEANUP_POLICY_CONFIG,"delete")
                 .config(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG,"2")
                 .config(TopicConfig.SEGMENT_BYTES_CONFIG,"1073741824")//1gb

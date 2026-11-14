@@ -14,6 +14,6 @@ public class AppConstants {
             "/oauth2/**",
             "/login/oauth2/**",
             "/api/v1/users/refresh-token",
-            "/api/v1/urls/{shortcode}"
+            "/{shortcode}"
     };
 }
