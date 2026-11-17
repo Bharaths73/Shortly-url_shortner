@@ -11,11 +11,13 @@ import com.urlshortner.shortly.Auth.repository.UserRepo;
 import com.urlshortner.shortly.Auth.service.CookieService;
 import com.urlshortner.shortly.Auth.service.Interfaces.UserAuthService;
 import com.urlshortner.shortly.Auth.service.JWTService;
+import com.urlshortner.shortly.Url.exception.custom.UserNotFoundException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.antlr.v4.runtime.Token;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +28,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -106,8 +109,33 @@ public class UserAuthServiceImpl implements UserAuthService {
     }
 
     @Override
-    public UserDto updateUser() {
-        return null;
+    @Transactional
+    public UserDto updateUser(UpdateUserRequestDto userDto, User user, HttpServletResponse response, HttpServletRequest request) throws InterruptedException {
+        RefreshToken oldRefreshToken = validateAndRevokeRefreshToken(null, request);
+        User dbUser = userRepo.findByEmail(user.getEmail()).orElseThrow(() -> new UserNotFoundException("User not found"));
+        if (userDto.getFirstName() != null) {
+            dbUser.setFirstName(userDto.getFirstName());
+        }
+        if (userDto.getLastName() != null) {
+            dbUser.setLastName(userDto.getLastName());
+        }
+        if (userDto.getEmail() != null && !userDto.getEmail().equalsIgnoreCase(dbUser.getEmail())) {
+            if (userRepo.existsByEmail(userDto.getEmail())) {
+                throw new UserAlreadyExistsException("Email already exists");
+            }
+            dbUser.setEmail(userDto.getEmail());
+        }
+        userRepo.save(dbUser);
+        TokenResponse tokenResponse = generateNewRefreshToken(oldRefreshToken, response);
+        return UserDto
+                .builder()
+                .accessToken(tokenResponse.accessToken())
+                .id(dbUser.getId())
+                .email(dbUser.getEmail())
+                .firstName(dbUser.getFirstName())
+                .lastName(dbUser.getLastName())
+                .isVerified(dbUser.isVerified())
+                .build();
     }
 
     @Override
@@ -115,8 +143,7 @@ public class UserAuthServiceImpl implements UserAuthService {
         return "";
     }
 
-    @Override
-    public TokenResponse refreshToken(RefreshTokenRequest body, HttpServletResponse response, HttpServletRequest request) throws InterruptedException {
+    private RefreshToken  validateAndRevokeRefreshToken(RefreshTokenRequest body, HttpServletRequest request){
         String refreshToken = readRefreshTokenFromRequest(body, request)
                 .orElseThrow(() -> new BadCredentialsException("Refresh token is missing"));
 
@@ -146,11 +173,21 @@ public class UserAuthServiceImpl implements UserAuthService {
         String newJti= UUID.randomUUID().toString();
         storedRefreshToken.setReplacedByToken(newJti);
         refreshTokenRepository.save(storedRefreshToken);
+        return storedRefreshToken;
+    }
 
-        User user = storedRefreshToken.getUser();
+    @Override
+    @Transactional
+    public TokenResponse refreshToken(RefreshTokenRequest body, HttpServletResponse response, HttpServletRequest request) throws InterruptedException {
+        RefreshToken rotateRefreshToken = validateAndRevokeRefreshToken(body,request);
+        TokenResponse newRefreshToken = generateNewRefreshToken(rotateRefreshToken, response);
+        return newRefreshToken;
+    }
 
+    private TokenResponse generateNewRefreshToken(RefreshToken rotateRefreshToken, HttpServletResponse response){
+        User user = rotateRefreshToken.getUser();
         var newRefreshTokenOb = RefreshToken.builder()
-                .jti(newJti)
+                .jti(rotateRefreshToken.getReplacedByToken())
                 .user(user)
                 .createdAt(Instant.now())
                 .expiresAt(Instant.now().plusSeconds(jwtService.getRefreshTtlSeconds()))
@@ -169,6 +206,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     }
 
     @Override
+    @Transactional
     public void logout(HttpServletRequest request, HttpServletResponse response) {
         readRefreshTokenFromRequest(null, request).ifPresent(token -> {
             try {
@@ -194,6 +232,22 @@ public class UserAuthServiceImpl implements UserAuthService {
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
         return modelMapper.map(user, UserDto.class);
+    }
+
+    @Override
+    public UserDto updateUserPassword(UpdatePasswordDto passwordDto, User user) {
+        User dbUser = userRepo.findByEmail(user.getEmail()).orElseThrow(() -> new UserNotFoundException("User not found"));
+        String currentPassword = passwordDto.getCurrentPassword();
+        String newPassword = passwordDto.getNewPassword();
+        if (!bCryptPasswordEncoder.matches(currentPassword, dbUser.getPassword())) {
+            throw new InvalidCredentialsException("Current password is incorrect");
+        }
+        if (bCryptPasswordEncoder.matches(newPassword, dbUser.getPassword())) {
+            throw new InvalidCredentialsException("New password cannot be the same as the current password");
+        }
+        dbUser.setPassword(bCryptPasswordEncoder.encode(newPassword));
+        userRepo.save(dbUser);
+        return modelMapper.map(dbUser, UserDto.class);
     }
 
     private Optional<String> readRefreshTokenFromRequest(RefreshTokenRequest body, HttpServletRequest request) {

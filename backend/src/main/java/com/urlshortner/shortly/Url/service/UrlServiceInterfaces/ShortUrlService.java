@@ -2,6 +2,7 @@ package com.urlshortner.shortly.Url.service.UrlServiceInterfaces;
 
 
 import com.urlshortner.shortly.Auth.entities.User;
+import com.urlshortner.shortly.Url.dtos.PagingUrlRequestDto;
 import com.urlshortner.shortly.Url.dtos.UrlRequestDto;
 import com.urlshortner.shortly.Url.dtos.UrlResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,5 +17,5 @@ public interface ShortUrlService {
 
     UrlResponseDto getShortCodeDetails(String shortcode);
 
-    List<UrlResponseDto> getUserShortUrls(UUID userId);
+    PagingUrlRequestDto getUserShortUrls(UUID userId, int page, int size);
 }

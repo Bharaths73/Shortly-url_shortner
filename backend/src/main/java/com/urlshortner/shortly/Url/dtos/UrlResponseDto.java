@@ -14,6 +14,7 @@ public class UrlResponseDto {
     private UUID id;
     private String originalUrl;
     private String shortCode;
+    private long totalClicks;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

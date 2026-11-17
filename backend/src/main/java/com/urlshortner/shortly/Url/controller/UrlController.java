@@ -1,6 +1,7 @@
 package com.urlshortner.shortly.Url.controller;
 
 import com.urlshortner.shortly.Auth.entities.User;
+import com.urlshortner.shortly.Url.dtos.PagingUrlRequestDto;
 import com.urlshortner.shortly.Url.dtos.UrlRequestDto;
 import com.urlshortner.shortly.Url.dtos.UrlResponseDto;
 import com.urlshortner.shortly.Url.exception.custom.InvalidShortCodeException;
@@ -59,9 +60,9 @@ public class UrlController {
     }
 
     @GetMapping("/user/{userId}")//get all urls for specific user and add paging
-    public ResponseEntity<ApiResponseModel<List<UrlResponseDto>>> getUserUrls(@PathVariable UUID userId){
-        List<UrlResponseDto> urlResponseDtos = service.getUserShortUrls(userId);
-        ApiResponseModel<List<UrlResponseDto>> response = ApiResponseModel.<List<UrlResponseDto>>builder()
+    public ResponseEntity<ApiResponseModel<PagingUrlRequestDto>> getUserUrls(@PathVariable UUID userId, @RequestParam(required = false, defaultValue = "0") int page, @RequestParam(required = false, defaultValue = "10") int size){
+        PagingUrlRequestDto urlResponseDtos = service.getUserShortUrls(userId, page, size);
+        ApiResponseModel<PagingUrlRequestDto> response = ApiResponseModel.<PagingUrlRequestDto>builder()
                 .message("Successfully Fetched Urls")
                 .success(true)
                 .data(urlResponseDtos)

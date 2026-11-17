@@ -1,6 +1,7 @@
 package com.urlshortner.shortly.Auth.service.Interfaces;
 
 import com.urlshortner.shortly.Auth.dtos.*;
+import com.urlshortner.shortly.Auth.entities.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -13,7 +14,7 @@ public interface UserAuthService {
 
     public UserDto getUser(UUID id);
 
-    public UserDto updateUser();
+    public UserDto updateUser(UpdateUserRequestDto userDto, User user, HttpServletResponse response, HttpServletRequest request) throws InterruptedException;
 
     public String deleteUser();
 
@@ -22,4 +23,6 @@ public interface UserAuthService {
     public void logout(HttpServletRequest request, HttpServletResponse response);
 
     UserDto getCurrentUser(String email);
+
+    UserDto updateUserPassword(UpdatePasswordDto passwordDto, User user);
 }

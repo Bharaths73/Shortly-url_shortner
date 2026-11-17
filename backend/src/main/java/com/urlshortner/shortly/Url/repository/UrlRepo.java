@@ -3,6 +3,8 @@ package com.urlshortner.shortly.Url.repository;
 import com.urlshortner.shortly.Analytics.dtos.DashboardStats;
 import com.urlshortner.shortly.Url.entities.ShortUrl;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,7 +23,7 @@ public interface UrlRepo extends JpaRepository<ShortUrl, UUID> {
     Optional<ShortUrl> findByShortCode(String shortCode);
 
     @Query("select s from ShortUrl s where s.user.id=:id")
-    List<ShortUrl> findByUserId(@Param(value = "id") UUID id);
+    Page<ShortUrl> findByUserId(@Param(value = "id") UUID id, Pageable pageable);
 
     @Modifying
     @Query("""

@@ -2,6 +2,7 @@ package com.urlshortner.shortly.Url.service;
 
 import com.urlshortner.shortly.Auth.entities.User;
 import com.urlshortner.shortly.Auth.repository.UserRepo;
+import com.urlshortner.shortly.Url.dtos.PagingUrlRequestDto;
 import com.urlshortner.shortly.Url.dtos.ShortUrlCacheDto;
 import com.urlshortner.shortly.Url.dtos.UrlRequestDto;
 import com.urlshortner.shortly.Url.dtos.UrlResponseDto;
@@ -24,6 +25,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -47,6 +52,9 @@ public class ShortUrlServiceImplementation implements ShortUrlService {
     @Value("${short-url.max-retries}")
     private Integer MAX_RETRIES;
 
+    @Value("${short.url.base}")
+    private String SHORT_URL_BASE;
+
     @Override
     @CacheEvict(cacheNames = "analyticsDashboardCache", key = "#principal.id")
     public UrlResponseDto createShortUrl(UrlRequestDto requestDto, User principal) {
@@ -62,7 +70,7 @@ public class ShortUrlServiceImplementation implements ShortUrlService {
                ShortUrl shortUrl = writer.insert(url, code, principal);
                UrlResponseDto urlResponseDto = UrlResponseDto.builder()
                        .originalUrl(shortUrl.getOriginalUrl())
-                       .shortCode(shortUrl.getShortCode())
+                       .shortCode(SHORT_URL_BASE + "/" + shortUrl.getShortCode())
                        .id(shortUrl.getId())
                        .createdAt(shortUrl.getCreatedAt())
                        .updatedAt(shortUrl.getUpdatedAt())
@@ -117,18 +125,29 @@ public class ShortUrlServiceImplementation implements ShortUrlService {
     }
 
     @Override
-    public List<UrlResponseDto> getUserShortUrls(UUID userId) {
+    public PagingUrlRequestDto getUserShortUrls(UUID userId, int page, int size) {
         User user = userRepo.findById(userId).orElseThrow(()->new UserNotFoundException("User Not Found"));
-        List<ShortUrl> userShortUrls = repo.findByUserId(user.getId());
-        return userShortUrls.stream().map((url)->{
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<ShortUrl> userShortUrls = repo.findByUserId(user.getId(),pageable);
+        List<UrlResponseDto> userUrls = userShortUrls.getContent().stream().map((url)->{
             return UrlResponseDto
                     .builder()
                     .id(url.getId())
-                    .shortCode(url.getShortCode())
+                    .shortCode(SHORT_URL_BASE + "/" + url.getShortCode())
                     .originalUrl(url.getOriginalUrl())
+                    .totalClicks(url.getTotalClicks())
                     .updatedAt(url.getUpdatedAt())
                     .createdAt(url.getCreatedAt())
                     .build();
         }).toList();
+        PagingUrlRequestDto response = PagingUrlRequestDto.builder()
+                .urls(userUrls)
+                .page(userShortUrls.getNumber())
+                .totalPages(userShortUrls.getTotalPages())
+                .totalElements(userShortUrls.getTotalElements())
+                .isFirstPage(userShortUrls.isFirst())
+                .isLastPage(userShortUrls.isLast())
+                .build();
+        return response;
     }
 }
