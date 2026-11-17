@@ -1,15 +1,15 @@
-const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const userEndPoints = {
-    login : `${API_URL}/api/v1/users/login`,
-    register: `${API_URL}/api/v1/users/register`,
-    getUser : `${API_URL}/api/v1/users/user`, //should pass Id in path variable
-    me: `${API_URL}/api/v1/users/me`,
-    profile: `${API_URL}/api/v1/users/user`, //should pass Id in path variable
-    updateProfile: `${API_URL}/api/v1/users/user/me`,
-    updatePassword: `${API_URL}/api/v1/users/user/me/password`,
-    updateUser: `${API_URL}/api/v1/users/user`, //should pass Id in path variable
-    deleteUser: `${API_URL}/api/v1/users/user`, //should pass Id in path variable
-    refreshToken: `${API_URL}/api/v1/users/refresh-token`,
-    logout: `${API_URL}/api/v1/users/logout`
+    login : `/api/v1/users/login`,
+    register: `/api/v1/users/register`,
+    getUser : `/api/v1/users/user`, //should pass Id in path variable
+    me: `/api/v1/users/me`,
+    verify_email: `/api/v1/users/verify-email`,
+    profile: `/api/v1/users/user`, //should pass Id in path variable
+    updateProfile: `/api/v1/users/user/me`,
+    updatePassword: `/api/v1/users/user/me/password`,
+    updateUser: `/api/v1/users/user`, //should pass Id in path variable
+    deleteUser: `/api/v1/users/user`, //should pass Id in path variable
+    refreshToken: `/api/v1/users/refresh-token`,
+    logout: `/api/v1/users/logout`
 }

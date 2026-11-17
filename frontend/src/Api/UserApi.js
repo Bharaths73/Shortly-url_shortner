@@ -84,3 +84,12 @@ export async function logoutUser() {
     const response = await authApi.post(`${userEndPoints.logout}`);
     return response.data;
 }
+
+export const verifyEmail = async (token) => {
+    const response = await publicApi.post(userEndPoints.verify_email, null, {
+      params: { token },
+    });
+
+     console.log("Verification API response:", response);
+    return response.data;
+  };

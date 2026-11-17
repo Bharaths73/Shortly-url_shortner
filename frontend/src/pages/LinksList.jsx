@@ -11,7 +11,6 @@ import {
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -22,7 +21,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getLinksPage } from "@/Api/linksApi";
 import { useSelector } from "react-redux";
 import { useState } from "react";
-import { ChartNoAxesColumn } from "lucide-react";
+import { ArrowRight, ChartNoAxesColumn, CircleAlert, Link2, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const links_list = [
   {
@@ -68,11 +69,8 @@ export function LinksList() {
   const {
     data: linkDetails,
     isPending,
-    isFetching,
     isError,
-    error,
     isPlaceholderData,
-    refetch
   } = useQuery({
     queryKey: ["links", userId, page, pageSize],
     queryFn: () => getLinksPage(userId, page, pageSize),
@@ -102,123 +100,167 @@ export function LinksList() {
 
   if (isError) {
     return (
-      <div className="text-2xl text-gray-600 mx-auto my-auto w-full flex justify-center">
-        Something Went Wrong
+      <div className="grid min-h-[50vh] place-items-center">
+        <div className="flex max-w-sm flex-col items-center text-center">
+          <span className="mb-4 grid size-12 place-items-center rounded-2xl bg-destructive/10 text-destructive">
+            <CircleAlert className="size-5" />
+          </span>
+          <h1 className="text-lg font-semibold tracking-tight">Your links couldn’t load</h1>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Please try again in a little while. Your saved links are still here.
+          </p>
+        </div>
       </div>
     );
   }
 
   if (isPending) {
-    return <p className="text-center">Loading links...</p>;
+    return (
+      <div className="grid min-h-[50vh] place-items-center" aria-live="polite">
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
+            <Link2 className="size-4" />
+          </span>
+          Loading your links…
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-5">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">Link Library</h1>
-        <p className="text-sm text-muted-foreground">
-          All your shortened URLs, organized in one place.
-        </p>
-      </div>
-      <Table className="table-fixed w-full mt-3">
-        <TableCaption>A list of your Shortened URLs.</TableCaption>
-        <TableHeader>
-          <TableRow>
-            {links_list.map((link) => (
-              <TableHead className={`${link.width} text-sm font-semibold text-center`} key={link.key}>
-                {link.header}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {linkDetails?.urls?.length > 0 ? (
-            linkDetails?.urls.map((link) => (
-              <TableRow key={link.shortCode}>
-                <TableCell className="font-medium max-w-0 p-3">
-                  <a
-                    href={link.shortCode}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block truncate hover:underline"
-                    title={link.shortCode}
-                    onClick={()=>handleShortUrlClick(link.shortCode)}
-                  >
-                    {link.shortCode}
-                  </a>
-                </TableCell>
-                <TableCell className="max-w-0">
-                  <p
-                    rel="noopener noreferrer"
-                    className="block truncate"
-                    title={link.originalUrl}
-                  >
-                    {link.originalUrl}
-                  </p>
-                </TableCell>
-                <TableCell>{formatDateTime(link.createdAt)}</TableCell>
-                <TableCell>
-                  <div className="flex gap-x-5 justify-center">
-                    <ChartNoAxesColumn/>
-                    <p className="mt-1 text-sm font-semibold">{link.totalClicks}</p>
+    <div className="links-page">
+      <header className="page-header">
+        <div>
+          <span className="page-eyebrow">LINK LIBRARY</span>
+          <h1 className="page-title">Your links</h1>
+          <p className="page-description">
+            All your shortened URLs, organized in one place.
+          </p>
+        </div>
+        <Button
+          render={<Link to="/home" />}
+          className="hidden gap-2 rounded-xl px-4 sm:inline-flex"
+        >
+          <Plus className="size-4" />
+          Create a link
+        </Button>
+      </header>
+      <section className="links-card" aria-label="Shortened URLs">
+        <Table className="links-table table-fixed">
+          <TableCaption className="sr-only">A list of your shortened URLs.</TableCaption>
+          <TableHeader>
+            <TableRow>
+              {links_list.map((link) => (
+                <TableHead className={`${link.width} text-center`} key={link.key}>
+                  {link.header}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {linkDetails?.urls?.length > 0 ? (
+              linkDetails.urls.map((link) => (
+                <TableRow key={link.shortCode}>
+                  <TableCell className="max-w-0 p-3">
+                    <a
+                      href={link.shortCode}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="short-link block truncate"
+                      title={link.shortCode}
+                      onClick={() => handleShortUrlClick(link.shortCode)}
+                    >
+                      {link.shortCode}
+                    </a>
+                  </TableCell>
+                  <TableCell className="max-w-0">
+                    <p
+                      className="block truncate"
+                      title={link.originalUrl}
+                    >
+                      {link.originalUrl}
+                    </p>
+                  </TableCell>
+                  <TableCell>{formatDateTime(link.createdAt)}</TableCell>
+                  <TableCell className="text-center">
+                    <span className="link-visits">
+                      <ChartNoAxesColumn className="size-4" />
+                      <span className="font-semibold">{link.totalClicks}</span>
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={links_list.length} className="py-16 text-center">
+                  <div className="mx-auto flex max-w-xs flex-col items-center">
+                    <span className="mb-3 grid size-11 place-items-center rounded-2xl bg-violet-50 text-violet-600">
+                      <Link2 className="size-5" />
+                    </span>
+                    <span className="font-semibold text-foreground">No links yet</span>
+                    <span className="mt-1 text-sm text-muted-foreground">
+                      Shorten a URL and it’ll appear here.
+                    </span>
+                    <Button
+                      render={<Link to="/home" />}
+                      className="mt-4 gap-2 rounded-xl"
+                      size="sm"
+                    >
+                      Create your first link
+                      <ArrowRight className="size-3.5" />
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
+            )}
+          </TableBody>
+          <TableFooter className="bg-white">
             <TableRow>
-              <TableCell colSpan={links_list.length} className="text-center">
-                No shortened URLs found.
+              <TableCell className="text-right" colSpan={links_list.length}>
+                <Pagination className="link-pagination mx-0 w-auto">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+
+                          if (!isPlaceholderData && !linkDetails.firstPage) {
+                            setPage((prev) => prev - 1);
+                          }
+                        }}
+                        className={
+                          linkDetails.firstPage || isPlaceholderData
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+                    <PaginationLink isActive>{page + 1}</PaginationLink>
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+
+                          if (!isPlaceholderData && !linkDetails.lastPage) {
+                            setPage((prev) => prev + 1);
+                          }
+                        }}
+                        className={
+                          linkDetails.lastPage || isPlaceholderData
+                            ? "pointer-events-none opacity-50 cursor-not-allowed"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
               </TableCell>
             </TableRow>
-          )}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell className="text-right" colSpan={links_list.length}>
-              <Pagination className="mx-0 w-auto">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-
-                        if (!isPlaceholderData && !linkDetails.firstPage) {
-                          setPage((prev) => prev - 1);
-                        }
-                      }}
-                      className={
-                        linkDetails.firstPage || isPlaceholderData
-                          ? "pointer-events-none opacity-50"
-                          : "cursor-pointer"
-                      }
-                    />
-                  </PaginationItem>
-                  <PaginationLink isActive>{page + 1}</PaginationLink>
-                  <PaginationItem>
-                    <PaginationNext
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-
-                        if (!isPlaceholderData && !linkDetails.lastPage) {
-                          setPage((prev) => prev + 1);
-                        }
-                      }}
-                      className={
-                        linkDetails.lastPage || isPlaceholderData
-                          ? "pointer-events-none opacity-50 cursor-not-allowed"
-                          : "cursor-pointer"
-                      }
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
+          </TableFooter>
+        </Table>
+      </section>
     </div>
   );
 }

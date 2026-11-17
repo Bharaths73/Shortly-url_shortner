@@ -21,12 +21,22 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { ChartAreaIcon, ChartBar, ChartBarBigIcon, TrendingUp } from "lucide-react";
+import {
+  BarChart3,
+  ChartNoAxesCombined,
+  CircleAlert,
+  Link2,
+  MousePointer2,
+  Plus,
+  TrendingUp,
+} from "lucide-react";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 function ChartSkeletonCard({ title, description }) {
   return (
-    <Card aria-busy="true" aria-label={`Loading ${title} chart`}>
+    <Card className="chart-card" aria-busy="true" aria-label={`Loading ${title} chart`}>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <p className="text-sm text-muted-foreground">{description}</p>
@@ -57,12 +67,12 @@ function Dashboard() {
   });
 
   const analyticsConfig = [
-    { title: "Total URLs", key: "totalUrls" },
-    { title: "URLs Today", key: "urlsToday" },
-    { title: "URLs This Month", key: "urlsThisMonth" },
-    { title: "Total Clicks", key: "totalClicks" },
-    { title: "Clicks Today", key: "clicksToday" },
-    { title: "Clicks This Month", key: "clicksThisMonth" },
+    { title: "Total links", key: "totalUrls", icon: Link2, tone: "purple" },
+    { title: "Created today", key: "urlsToday", icon: Plus, tone: "green" },
+    { title: "Created this month", key: "urlsThisMonth", icon: TrendingUp, tone: "blue" },
+    { title: "Total clicks", key: "totalClicks", icon: MousePointer2, tone: "purple" },
+    { title: "Clicks today", key: "clicksToday", icon: ChartNoAxesCombined, tone: "green" },
+    { title: "Clicks this month", key: "clicksThisMonth", icon: BarChart3, tone: "blue" },
   ];
 
   const urlChartData = [
@@ -87,19 +97,45 @@ function Dashboard() {
 
   if (isError) {
     return (
-      <div className="text-2xl text-gray-600 mx-auto my-auto w-full flex justify-center">
-        Something Went Wrong
+      <div className="grid min-h-[50vh] place-items-center">
+        <div className="flex max-w-sm flex-col items-center text-center">
+          <span className="mb-4 grid size-12 place-items-center rounded-2xl bg-destructive/10 text-destructive">
+            <CircleAlert className="size-5" />
+          </span>
+          <h1 className="text-lg font-semibold tracking-tight">We couldn’t load your overview</h1>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Your dashboard is temporarily unavailable. Please try again in a little while.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-7">
+    <div className="dashboard-page">
+      <header className="page-header">
+        <div>
+          <span className="page-eyebrow">OVERVIEW</span>
+          <h1 className="page-title">Your activity</h1>
+          <p className="page-description">
+            A quick look at how your links are performing.
+          </p>
+        </div>
+        {!isPending && (
+          <Button
+            render={<Link to="/home" />}
+            className="hidden gap-2 rounded-xl px-4 sm:inline-flex"
+          >
+            <Plus className="size-4" />
+            Create a link
+          </Button>
+        )}
+      </header>
       {isPending ? (
         <>
           <SkeletonDetailFlex
             size={6}
-            className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+            className="grid min-h-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
           />
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
             <ChartSkeletonCard
@@ -118,18 +154,20 @@ function Dashboard() {
             {analyticsConfig.map((config) => (
               <Card
                 key={config.key}
-                className="flex flex-row items-center justify-between gap-4 p-6 transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+                className="metric-card flex flex-row items-center justify-between gap-4 transition-[transform,box-shadow] duration-200 ease-out motion-reduce:transition-none"
               >
-                <div className="flex items-center gap-7">
-                  <TrendingUp className="size-8"/>
-                  <div className="flex flex-col gap-y-1.5">
+                <div className="flex min-w-0 items-center gap-4">
+                  <span className={`metric-card__icon ${config.tone === "green" ? "metric-card__icon--green" : config.tone === "blue" ? "metric-card__icon--blue" : ""}`}>
+                    <config.icon className="size-5" />
+                  </span>
+                  <div className="min-w-0">
                     <CardHeader className="p-0">
-                      <CardTitle className="text-3xl">
+                      <CardTitle className="metric-card__value">
                         {dashboardDetails?.[config.key] ?? 0}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
-                      <p className="text-sm text-muted-foreground">
+                      <p className="metric-card__label">
                         {config.title}
                       </p>
                     </CardContent>
@@ -140,7 +178,7 @@ function Dashboard() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            <Card className="transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+            <Card className="chart-card">
               <CardHeader>
                 <CardTitle>URL activity</CardTitle>
                 <p className="text-sm text-muted-foreground">
@@ -174,14 +212,14 @@ function Dashboard() {
                     <Bar
                       dataKey="urls"
                       fill="var(--color-urls)"
-                      radius={[4, 4, 0, 0]}
+                      radius={[7, 7, 0, 0]}
                     />
                   </BarChart>
                 </ChartContainer>
               </CardContent>
             </Card>
 
-            <Card className="transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+            <Card className="chart-card">
               <CardHeader>
                 <CardTitle>Click activity</CardTitle>
                 <p className="text-sm text-muted-foreground">
@@ -215,7 +253,7 @@ function Dashboard() {
                     <Bar
                       dataKey="clicks"
                       fill="var(--color-clicks)"
-                      radius={[4, 4, 0, 0]}
+                      radius={[7, 7, 0, 0]}
                     />
                   </BarChart>
                 </ChartContainer>

@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
+import LoadingScreen from "@/pages/LoadingScreen";
 
 function ProtectedRoute() {
   const location = useLocation();

@@ -1,6 +1,5 @@
 import {
   BadgeCheck,
-  Check,
   Loader2,
   LockKeyhole,
   Mail,
@@ -15,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateUserPassword, updateUserProfile } from "@/Api/UserApi";
-import { setCredentials, setUser } from "@/redux/slices/user";
+import { setCredentials } from "@/redux/slices/user";
 import { toast } from "@/components/ui/toast";
 import { useMutation } from "@tanstack/react-query";
 
@@ -59,10 +58,6 @@ function Profile() {
   const {
     mutate: updateProfile,
     isPending,
-    isSuccess,
-    isError,
-    error,
-    data,
   } = useMutation({
     mutationFn: updateUserProfile,
     retry: false,
@@ -96,11 +91,10 @@ function Profile() {
   const {
     mutate: updatePassword,
     isPending: passwordSubmissionPending,
-    isSuccess: passwordSubmissionSuccess,
   } = useMutation({
     mutationFn: updateUserPassword,
     retry: false,
-    onSuccess: (data) => {
+    onSuccess: () => {
       setPasswords({
         current: "",
         next: "",
@@ -153,20 +147,20 @@ function Profile() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-8 pb-12">
-      <header className="border-b pb-6">
-        <p className="mb-2 text-sm font-medium text-primary">ACCOUNT</p>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          Profile settings
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          Your personal details and account security.
-        </p>
+    <div className="profile-page space-y-6 pb-10">
+      <header className="page-header mb-6">
+        <div>
+          <span className="page-eyebrow">ACCOUNT</span>
+          <h1 className="page-title">Profile settings</h1>
+          <p className="page-description">
+            Your personal details and account security.
+          </p>
+        </div>
       </header>
 
-      <section className="flex flex-col items-center gap-5 rounded-2xl border bg-card p-6 shadow-sm sm:flex-row sm:items-center sm:p-8">
-        <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-primary text-xl font-semibold text-primary-foreground ring-4 ring-primary/10">
-          <p className="text-4xl font-semibold">{initials || "S"}</p>
+      <section className="profile-identity">
+        <div className="profile-avatar">
+          <p>{initials || "S"}</p>
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2.5">
@@ -186,10 +180,10 @@ function Profile() {
       </section>
 
       <div className="grid items-start gap-6 lg:grid-cols-[1.15fr_0.85fr] mt-5">
-        <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-          <div className="flex items-center justify-between gap-4 border-b px-6 py-5 sm:px-7">
+        <section className="profile-card">
+          <div className="profile-card__header justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <div className="profile-card__icon">
                 <UserRound aria-hidden="true" className="h-5 w-5" />
               </div>
               <div>
@@ -216,7 +210,7 @@ function Profile() {
           {isEditing ? (
             <form
               onSubmit={saveProfilePreview}
-              className="space-y-5 p-6 sm:p-7"
+              className="space-y-5 p-5 sm:p-6"
             >
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
@@ -273,16 +267,16 @@ function Profile() {
               </div>
             </form>
           ) : (
-            <dl className="divide-y px-6 sm:px-7">
-              <div className="flex items-start justify-between gap-4 py-4">
+            <dl className="px-5 sm:px-6">
+              <div className="profile-row">
                 <dt className="text-sm text-muted-foreground">First name</dt>
                 <dd className="text-right text-sm font-medium">{firstName}</dd>
               </div>
-              <div className="flex items-start justify-between gap-4 py-4">
+              <div className="profile-row">
                 <dt className="text-sm text-muted-foreground">Last name</dt>
                 <dd className="text-right text-sm font-medium">{lastName}</dd>
               </div>
-              <div className="flex items-start justify-between gap-4 py-4">
+              <div className="profile-row">
                 <dt className="text-sm text-muted-foreground">Email address</dt>
                 <dd className="break-all text-right text-sm font-medium">
                   {email || "Not provided"}
@@ -300,9 +294,9 @@ function Profile() {
           )}
         </section>
 
-        <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-          <div className="flex items-center gap-3 border-b px-6 py-5 sm:px-7">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
+        <section className="profile-card">
+          <div className="profile-card__header">
+            <div className="profile-card__icon profile-card__icon--green">
               <ShieldCheck aria-hidden="true" className="h-5 w-5" />
             </div>
             <div>
@@ -316,7 +310,7 @@ function Profile() {
           {isChangingPassword ? (
             <form
               onSubmit={handlePasswordSubmit}
-              className="space-y-4 p-6 sm:p-7"
+              className="space-y-4 p-5 sm:p-6"
             >
               <div className="space-y-2">
                 <Label htmlFor="current-password">Current password</Label>
@@ -364,9 +358,6 @@ function Profile() {
                   {passwordNotice}
                 </p>
               )}
-              <p className="text-xs leading-5 text-muted-foreground">
-                Password updates are not connected in this UI-only version.
-              </p>
               <div className="flex justify-end gap-2 border-t pt-4">
                 <Button
                   type="button"
@@ -384,7 +375,7 @@ function Profile() {
               </div>
             </form>
           ) : (
-            <div className="space-y-5 p-6 sm:p-7">
+            <div className="space-y-5 p-5 sm:p-6">
               <div className="flex items-center gap-3 rounded-xl bg-muted/50 p-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border bg-background text-muted-foreground">
                   <LockKeyhole aria-hidden="true" className="h-4 w-4" />

@@ -24,7 +24,7 @@ function ShortUrlCreated({ shortLink, open = false, onClose }) {
           description: "Short link copied to clipboard.",
         });
       })
-      .catch((err) => {
+      .catch(() => {
         toast.add({
           type: "error",
           description: "Failed to copy short link.",
@@ -36,29 +36,42 @@ function ShortUrlCreated({ shortLink, open = false, onClose }) {
     <Dialog open={open}>
       <form>
         <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Short Link Created</DialogTitle>
-            <DialogDescription>
-              Your short link has been generated successfully.
+          <DialogHeader className="gap-2">
+            <div className="mb-1 grid size-11 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-600">
+              <Copy className="size-5" aria-hidden="true" />
+            </div>
+            <DialogTitle className="text-xl tracking-tight">Your link is ready</DialogTitle>
+            <DialogDescription className="leading-6">
+              Your short link has been generated successfully. Copy it and share it anywhere.
             </DialogDescription>
           </DialogHeader>
-          <FieldGroup>
+          <FieldGroup className="mt-5">
             <Field>
               <Label htmlFor="short-link">Short Link</Label>
               <div className="flex items-center gap-2">
                 <Input
+                  className="h-10 rounded-xl bg-muted/40"
                   id="short-link"
                   name="short-link"
                   value={shortLink}
                   readOnly
                 />
-                <Copy onClick={handleCopy} className="cursor-pointer size-5" />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="size-10 shrink-0 rounded-xl"
+                  onClick={handleCopy}
+                  aria-label="Copy short link"
+                >
+                  <Copy className="size-4" />
+                </Button>
               </div>
             </Field>
           </FieldGroup>
-          <DialogFooter>
-            <DialogClose render={<Button variant="outline" onClick={onClose}>
-              Cancel
+          <DialogFooter className="mt-5">
+            <DialogClose render={<Button variant="outline" className="rounded-xl" onClick={onClose}>
+              Done
             </Button>} />
           </DialogFooter>
         </DialogContent>
