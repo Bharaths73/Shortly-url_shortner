@@ -5,6 +5,9 @@ export const userEndPoints = {
     register: `${API_URL}/api/v1/users/register`,
     getUser : `${API_URL}/api/v1/users/user`, //should pass Id in path variable
     me: `${API_URL}/api/v1/users/me`,
+    profile: `${API_URL}/api/v1/users/user`, //should pass Id in path variable
+    updateProfile: `${API_URL}/api/v1/users/user/me`,
+    updatePassword: `${API_URL}/api/v1/users/user/me/password`,
     updateUser: `${API_URL}/api/v1/users/user`, //should pass Id in path variable
     deleteUser: `${API_URL}/api/v1/users/user`, //should pass Id in path variable
     refreshToken: `${API_URL}/api/v1/users/refresh-token`,

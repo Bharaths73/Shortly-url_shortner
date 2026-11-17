@@ -1,4 +1,11 @@
-import { Home, LayoutDashboard, User, Settings, LogOut, LinkIcon } from "lucide-react";
+import {
+  Home,
+  LayoutDashboard,
+  User,
+  Settings,
+  LogOut,
+  LinkIcon,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -15,6 +22,11 @@ import {
 } from "@/components/ui/sidebar";
 
 import { NavLink } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { clearCredentials } from "@/redux/slices/user";
+import { logoutUser } from "@/Api/UserApi";
+import { toast } from "../ui/toast";
+import { useMutation } from "@tanstack/react-query";
 
 const menuItems = [
   {
@@ -45,13 +57,38 @@ const menuItems = [
 ];
 
 export default function AppSidebar() {
-    const {open} = useSidebar();
+  const { open, setOpenMobile } = useSidebar();
+  const { user } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+
+  const { mutateAsync: logout } = useMutation({
+    mutationFn: logoutUser,
+    retry: false,
+    onSuccess: () => {
+      dispatch(clearCredentials());
+      localStorage.removeItem("accessToken");
+      navigate("/login", { replace: true });
+    },
+  });
+
+  async function logoutHandler() {
+    try {
+      await toast.promise(logout(), {
+        loading: "Logging out...",
+        success: "Logged out successfully.",
+        error: "Logout failed. Please try again.",
+      });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  }
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-2">
           <div className="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
-            <p className={open ? "text-xl" : "text-sm"}>S</p>
+            <p className="text-xl">S</p>
           </div>
           <span className="font-semibold text-lg group-data-[collapsible=icon]:hidden">
             Shortly
@@ -72,15 +109,16 @@ export default function AppSidebar() {
                       <NavLink
                         to={item.url}
                         end
+                        onClick={() => setOpenMobile(false)}
                         className={({ isActive }) =>
                           isActive ? "bg-gray-200 text-black" : ""
                         }
-                      />
+                      >
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </NavLink>
                     }
-                  >
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
+                  ></SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -91,9 +129,11 @@ export default function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton>
+            <SidebarMenuButton className="cursor-pointer" onClick={logoutHandler}>
               <LogOut />
-              <span>Logout</span>
+              <span className="text-base font-semibold" >
+                Logout
+              </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

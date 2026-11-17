@@ -18,10 +18,11 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { queryDefaults } from "@/tanstackQueries/queryDefaults";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getLinksPage } from "@/Api/linksApi";
 import { useSelector } from "react-redux";
 import { useState } from "react";
+import { ChartNoAxesColumn } from "lucide-react";
 
 const links_list = [
   {
@@ -51,6 +52,7 @@ export function LinksList() {
   const userId = user?.id;
   const [page, setPage] = useState(0);
   const pageSize = 10;
+  const queryClient = useQueryClient();
 
   const formatDateTime = (date) => {
     return new Intl.DateTimeFormat("en-IN", {
@@ -70,6 +72,7 @@ export function LinksList() {
     isError,
     error,
     isPlaceholderData,
+    refetch
   } = useQuery({
     queryKey: ["links", userId, page, pageSize],
     queryFn: () => getLinksPage(userId, page, pageSize),
@@ -78,11 +81,30 @@ export function LinksList() {
     placeholderData: (previousData) => previousData,
   });
 
+  const handleShortUrlClick = (shortCode) => {
+  queryClient.setQueryData(
+    ["links", userId, page, pageSize],
+    (oldData) => {
+      if (!oldData) return oldData;
+
+      return {
+        ...oldData,
+        urls: oldData.urls.map((link) =>
+          link.shortCode === shortCode
+            ? { ...link, totalClicks: link.totalClicks + 1 }
+            : link
+        ),
+      };
+    }
+  );
+  queryClient.invalidateQueries({ queryKey: ["dashboard",user.id] });
+};
+
   if (isError) {
     return (
-      <p className="text-2xl text-gray-600 mx-auto my-auto">
+      <div className="text-2xl text-gray-600 mx-auto my-auto w-full flex justify-center">
         Something Went Wrong
-      </p>
+      </div>
     );
   }
 
@@ -103,7 +125,7 @@ export function LinksList() {
         <TableHeader>
           <TableRow>
             {links_list.map((link) => (
-              <TableHead className={link.width} key={link.key}>
+              <TableHead className={`${link.width} text-sm font-semibold text-center`} key={link.key}>
                 {link.header}
               </TableHead>
             ))}
@@ -113,30 +135,34 @@ export function LinksList() {
           {linkDetails?.urls?.length > 0 ? (
             linkDetails?.urls.map((link) => (
               <TableRow key={link.shortCode}>
-                <TableCell className="font-medium max-w-0">
+                <TableCell className="font-medium max-w-0 p-3">
                   <a
                     href={link.shortCode}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block truncate hover:underline"
                     title={link.shortCode}
+                    onClick={()=>handleShortUrlClick(link.shortCode)}
                   >
                     {link.shortCode}
                   </a>
                 </TableCell>
                 <TableCell className="max-w-0">
-                  <a
-                    href={link.originalUrl}
-                    target="_blank"
+                  <p
                     rel="noopener noreferrer"
-                    className="block truncate hover:underline"
+                    className="block truncate"
                     title={link.originalUrl}
                   >
                     {link.originalUrl}
-                  </a>
+                  </p>
                 </TableCell>
                 <TableCell>{formatDateTime(link.createdAt)}</TableCell>
-                <TableCell>{link.totalClicks}</TableCell>
+                <TableCell>
+                  <div className="flex gap-x-5 justify-center">
+                    <ChartNoAxesColumn/>
+                    <p className="mt-1 text-sm font-semibold">{link.totalClicks}</p>
+                  </div>
+                </TableCell>
               </TableRow>
             ))
           ) : (

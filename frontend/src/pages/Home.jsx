@@ -3,43 +3,68 @@ import ShortUrlCreated from "@/components/AppComponents/ShortUrlCreatedDailog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useSelector } from "react-redux";
 
 function Home() {
   const [longUrl, setLongUrl] = useState("");
   const [shortLink, setShortLink] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { user } = useSelector((state) => state.user);
+  const queryClient = useQueryClient();
 
   const handleInputChange = (e) => {
     setLongUrl(e.target.value);
-  }
+  };
 
   const handleDialogClose = () => {
     setIsDialogOpen(false);
-  }
+  };
 
-  const {mutate: shortenLink, isPending, isSuccess, isError, error, data} = useMutation({
-      mutationFn: generateShortLink,
-      retry: false,
-      onSuccess: (data) => {
-          setLongUrl("");
-          setShortLink(data.shortCode);
-          setIsDialogOpen(true);
-      },
-      onError: (error) => {
-          console.error("Error during short link generation:", error);
-          console.error("Stack:", error.stack);
-      }
-    })
+  const {
+    mutate: shortenLink,
+    isPending,
+    isSuccess,
+    isError,
+    error,
+    data,
+  } = useMutation({
+    mutationFn: generateShortLink,
+    retry: false,
+    onSuccess: (data) => {
+      setLongUrl("");
+      setShortLink(data.shortCode);
+      setIsDialogOpen(true);
+      queryClient.invalidateQueries({
+        queryKey: ["links"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard", user.id],
+      });
+    },
+    onError: (error) => {
+      toast.add({
+        type: "error",
+        description: "Something went wrong. Please try again.",
+      });
+    },
+  });
 
   const handleShortenLink = (longUrl) => {
     shortenLink({ originalUrl: longUrl });
-  }
+  };
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
-      {isDialogOpen && <ShortUrlCreated shortLink={shortLink} open={isDialogOpen} onClose={handleDialogClose} />}
+      {isDialogOpen && (
+        <ShortUrlCreated
+          shortLink={shortLink}
+          open={isDialogOpen}
+          onClose={handleDialogClose}
+        />
+      )}
       <div className="flex w-full max-w-3xl flex-col items-center gap-6 text-center">
         <div className="space-y-3">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
@@ -62,11 +87,12 @@ function Home() {
             onChange={handleInputChange}
           />
 
-          <Button 
-            className="h-12 px-8 text-base cursor-pointer" 
+          <Button
+            className="h-12 px-8 text-base cursor-pointer flex items-center gap-x-2"
             disabled={isPending || !longUrl}
             onClick={() => handleShortenLink(longUrl)}
           >
+            {isPending && <Loader2 className="animate-spin" />}
             Shorten URL
           </Button>
         </div>

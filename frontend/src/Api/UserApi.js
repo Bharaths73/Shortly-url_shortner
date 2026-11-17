@@ -57,3 +57,30 @@ export async function registerUser(userData){
     const user = response.data?.data;
     return user;
 }
+
+export async function getProfile(userId) {
+    const response = await authApi.get(`${userEndPoints.profile}/${userId}`);
+    const user = response.data?.data;
+    return user;
+}
+
+export async function updateUserProfile(userData) {
+    const response = await authApi.put(`${userEndPoints.updateProfile}`,userData);
+    const user = response.data?.data;
+    return user;
+}
+
+export async function updateUserPassword(passwordData) {
+  const passwordRequest = {
+    currentPassword: passwordData.current,
+    newPassword: passwordData.next
+  }
+    const response = await authApi.patch(`${userEndPoints.updatePassword}`,passwordRequest);
+    const user = response.data?.data;
+    return user;
+}
+
+export async function logoutUser() {
+    const response = await authApi.post(`${userEndPoints.logout}`);
+    return response.data;
+}
