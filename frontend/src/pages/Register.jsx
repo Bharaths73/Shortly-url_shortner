@@ -190,10 +190,10 @@ function Register() {
               </Button>
               <div className="auth-divider">or continue with</div>
               <Button variant="outline" className="auth-google w-full" disabled={isPending}>
-                <NavLink to={import.meta.env.VITE_OAUTH_URL}>
+                <a href={import.meta.env.VITE_OAUTH_URL}>
                   <span className="auth-google-mark" aria-hidden="true">G</span>
                   Sign up with Google
-                </NavLink>
+                </a>
               </Button>
             </CardFooter>
           </Card>
