@@ -146,7 +146,7 @@ function Login() {
               </Button>
               <div className="auth-divider">or continue with</div>
               <Button variant="outline" className="auth-google w-full" disabled={isPending}>
-                <NavLink to="http://localhost:8085/oauth2/authorization/google">
+                <NavLink to={import.meta.env.VITE_OAUTH_URL}>
                   <span className="auth-google-mark" aria-hidden="true">G</span>
                   Continue with Google
                 </NavLink>
