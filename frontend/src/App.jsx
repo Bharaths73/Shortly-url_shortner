@@ -17,6 +17,8 @@ function App() {
     <AuthInitializer>
       <Routes>
         <Route element={<PublicRoute />}>
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsAndConditions />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -30,7 +32,10 @@ function App() {
                 <span className="page-eyebrow">404 · PAGE NOT FOUND</span>
                 <h1>This link seems to be lost.</h1>
                 <p>The page you’re looking for doesn’t exist or has moved.</p>
-                <Link className="mt-5 inline-flex font-medium text-primary" to="/home">
+                <Link
+                  className="mt-5 inline-flex font-medium text-primary"
+                  to="/home"
+                >
                   Go to your workspace
                 </Link>
               </div>
@@ -39,11 +44,11 @@ function App() {
         />
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/home" element={<Home />} />
-            <Route path="/links" element={<LinksList/>} />
-        </Route>
+            <Route path="/links" element={<LinksList />} />
+          </Route>
         </Route>
       </Routes>
     </AuthInitializer>
