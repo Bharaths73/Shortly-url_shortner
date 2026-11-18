@@ -11,6 +11,8 @@ import MainLayout from "./components/layouts/MainLayout";
 import Home from "./pages/Home";
 import LinksList from "./pages/LinksList";
 import VerifyEmail from "./components/AuthComponent/VerifyEmail";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsAndConditions from "./pages/TermsAndConditions";
 
 function App() {
   return (
